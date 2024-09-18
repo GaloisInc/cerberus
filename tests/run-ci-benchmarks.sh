@@ -16,11 +16,13 @@ for TEST in ${TESTS}; do
 done
 
 INDEX=0
+TOTAL=0
 for TEST in ${TESTS}; do
 
   # Record wall clock time in seconds
   /usr/bin/time --quiet -f "%e" -o /tmp/time cn verify "${TEST}" || true
   TIME=$(cat /tmp/time)
+  let TOTAL=${TOTAL}+${TIME}
 
   # If we're last, don't print a trailing comma.
   if [[ ${INDEX} -eq ${COUNT}-1 ]]; then
@@ -48,3 +50,5 @@ done
 echo "]" >> "${JSON_FILE}"
 
 jq . "${JSON_FILE}"
+
+echo ${TOTAL}
