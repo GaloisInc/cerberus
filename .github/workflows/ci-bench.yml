@@ -102,7 +102,7 @@ jobs:
         cd ..
 
     - name: Store benchmark result
-      uses: benchmark-action/github-action-benchmark@v1
+      uses: GaloisInc/github-action-benchmark@feature/multiple_series
       with:
         name: CN Benchmarks
         tool: 'customSmallerIsBetter'
