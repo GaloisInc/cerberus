@@ -141,7 +141,7 @@
             const map = new Map(); // Map BenchName (Map SeriesName BenchResult)
             for (const entry of entries) {
               const {commit, date, tool, benches} = entry;
-              for (series_name in benches) { // Map SeriesName [Benchmark]
+              for (const series_name in benches) { // Map SeriesName [Benchmark]
                 for (const bench of benches[series_name]) {
                   const result = { commit, date, tool, bench };
                   const series_map = map.get(bench.name);
