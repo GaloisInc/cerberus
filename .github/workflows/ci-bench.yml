@@ -102,11 +102,13 @@ jobs:
         cd ..
 
     - name: Store benchmark result
-      uses: GaloisInc/github-action-benchmark@72145f7ca9fb28ba0c7599a449988792b321ae88
+      uses: GaloisInc/github-action-benchmark@8c5b0d625db3ab39a29e7680a3d1a9b73a4110af
       with:
         name: CN Benchmarks
         tool: 'customSmallerIsBetter'
-        output-file-path: tests/benchmark-data.json
+        output-file-path:
+          z3: tests/benchmark-data.json
+          cvc5: tests/benchmark-data.json
         # Access token to deploy GitHub Pages branch
         github-token: ${{ secrets.GITHUB_TOKEN }}
         # Push and deploy GitHub pages branch automatically
