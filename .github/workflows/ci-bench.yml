@@ -106,9 +106,11 @@ jobs:
       with:
         name: CN Benchmarks
         tool: 'customSmallerIsBetter'
-        output-file-path:
-          z3: tests/benchmark-data.json
-          cvc5: tests/benchmark-data.json
+        output-file-path: |
+          {
+            "z3": "tests/benchmark-data.json"
+            "cvc5": "tests/benchmark-data.json"
+          }
         # Access token to deploy GitHub Pages branch
         github-token: ${{ secrets.GITHUB_TOKEN }}
         # Push and deploy GitHub pages branch automatically
