@@ -102,7 +102,7 @@ jobs:
         cd ..
 
     - name: Store benchmark result
-      uses: GaloisInc/github-action-benchmark@1c98ca592c1af29cb1a2de16179a7fb0b417546f
+      uses: GaloisInc/github-action-benchmark@b15f8e57ac3242eb914fdaaa731d989a8748a35e
       with:
         name: CN Benchmarks
         tool: 'customSmallerIsBetter'
