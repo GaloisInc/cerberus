@@ -108,7 +108,7 @@ jobs:
         tool: 'customSmallerIsBetter'
         output-file-path: |
           {
-            "z3": "tests/benchmark-data.json"
+            "z3": "tests/benchmark-data.json",
             "cvc5": "tests/benchmark-data.json"
           }
         # Access token to deploy GitHub Pages branch
