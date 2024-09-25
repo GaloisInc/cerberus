@@ -85,6 +85,8 @@ SUCCESS=$(find cn -name '*.c' \
     ! -name "fun_ptr_extern.c" \
     ! -name "b_xor.c" \
     ! -name "copy_alloc_id.c" \
+    ! -name "copy_alloc_id.error.c" \
+    ! -name "copy_alloc_id2.error.c" \
     ! -name "has_alloc_id.c" \
     ! -name "has_alloc_id_shift.c" \
     ! -name "ptr_diff2.c" \
@@ -95,6 +97,10 @@ SUCCESS=$(find cn -name '*.c' \
     ! -name "mask_ptr.c" \
     ! -name "previously_inconsistent_assumptions1.c" \
     ! -name "previously_inconsistent_assumptions2.c" \
+    ! -name "ptr_relop.c" \
+    ! -name "ptr_relop.error.c" \
+    ! -name "int_to_ptr.c" \
+    ! -name "int_to_ptr.error.c" \
 )
 
 # Include files which cause error for proof but not testing
@@ -144,6 +150,8 @@ BUGGY="cn/division_casting.c \
        cn/fun_ptr_extern.c \
        cn/b_xor.c \
        cn/copy_alloc_id.c \
+       cn/copy_alloc_id.error.c \
+       cn/copy_alloc_id2.error.c \
        cn/has_alloc_id.c \
        cn/has_alloc_id_shift.c \
        cn/ptr_diff2.c \
@@ -154,6 +162,10 @@ BUGGY="cn/division_casting.c \
        cn/mask_ptr.c \
        cn/previously_inconsistent_assumptions1.c \
        cn/previously_inconsistent_assumptions2.c \
+       cn/ptr_relop.c \
+       cn/ptr_relop.error.c \
+       cn/int_to_ptr.c \
+       cn/int_to_ptr.error.c \
        "
 
 # Exclude files which cause error for proof but not testing

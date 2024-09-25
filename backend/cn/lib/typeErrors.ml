@@ -37,7 +37,7 @@ let call_prefix = function
 
 
 type situation =
-  | Ptr_diff
+  | Ptr_diff_or_compare
   | Access of access
   | Call of call_situation
 
@@ -59,7 +59,7 @@ let call_situation = function
 
 let checking_situation = function
   | Access _ -> !^"checking access"
-  | Ptr_diff -> !^"checking pointer difference"
+  | Ptr_diff_or_compare -> !^"checking pointer difference or comparison"
   | Call s -> call_situation s
 
 
@@ -73,7 +73,7 @@ let for_access = function
 
 let for_situation = function
   | Access access -> for_access access
-  | Ptr_diff -> !^"for subtracting pointers"
+  | Ptr_diff_or_compare -> !^"for subtracting or comparing pointers"
   | Call s ->
     (match s with
      | FunctionCall fsym -> !^"for calling function" ^^^ Sym.pp fsym
@@ -198,6 +198,18 @@ type message =
       }
   | Undefined_behaviour of
       { ub : CF.Undefined.undefined_behaviour;
+        ctxt : Context.t * log;
+        model : Solver.model_with_q
+      }
+  | Needs_alloc_id of
+      { ptr : IT.t;
+        ub : CF.Undefined.undefined_behaviour;
+        ctxt : Context.t * log;
+        model : Solver.model_with_q
+      }
+  | Alloc_out_of_bounds of
+      { ptr : IT.t;
+        ub : CF.Undefined.undefined_behaviour;
         ctxt : Context.t * log;
         model : Solver.model_with_q
       }
@@ -475,6 +487,24 @@ let pp_message te =
     { short; descr = Some descr; state = Some state }
   | Undefined_behaviour { ub; ctxt; model } ->
     let short = !^"Undefined behaviour" in
+    let state = trace ctxt model Explain.no_ex in
+    let descr =
+      match CF.Undefined.std_of_undefined_behaviour ub with
+      | Some stdref -> !^(CF.Undefined.ub_short_string ub) ^^^ parens !^stdref
+      | None -> !^(CF.Undefined.ub_short_string ub)
+    in
+    { short; descr = Some descr; state = Some state }
+  | Needs_alloc_id { ptr; ub; ctxt; model } ->
+    let short = !^"Pointer " ^^ bquotes (IT.pp ptr) ^^ !^" needs allocation ID" in
+    let state = trace ctxt model Explain.no_ex in
+    let descr =
+      match CF.Undefined.std_of_undefined_behaviour ub with
+      | Some stdref -> !^(CF.Undefined.ub_short_string ub) ^^^ parens !^stdref
+      | None -> !^(CF.Undefined.ub_short_string ub)
+    in
+    { short; descr = Some descr; state = Some state }
+  | Alloc_out_of_bounds { ptr; ub; ctxt; model } ->
+    let short = !^"Pointer " ^^ bquotes (IT.pp ptr) ^^ !^" out of bounds" in
     let state = trace ctxt model Explain.no_ex in
     let descr =
       match CF.Undefined.std_of_undefined_behaviour ub with
