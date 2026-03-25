@@ -701,10 +701,13 @@ and pp_statement_aux pp_annot ~bs {attrs= Annot.Attrs attrs; node; _} =
         pp_keyword "switch" ^^^ P.parens (pp_expression_aux pp_annot e) ^/^ pp_statement ~is_control:true s
     | AilScase (n, s) ->
         if !executable_spec then
-          (* TODO(Rini): this is very brittle *)
-          let case_str = match (List.nth attrs 0).attr_id with
-            | Identifier (_, str) -> str in
-          pp_keyword "case" ^^^ !^ case_str ^^ P.colon ^/^ pp_statement s
+          match attrs with
+          | attr :: _ ->
+              let case_str = match attr.attr_id with
+                | Identifier (_, str) -> str in
+              pp_keyword "case" ^^^ !^ case_str ^^ P.colon ^/^ pp_statement s
+          | [] ->
+              pp_keyword "case" ^^^ !^ (Z.to_string n) ^^ P.colon ^/^ pp_statement s
         else
           pp_keyword "case" ^^^ !^ (Z.to_string n) ^^ P.colon ^/^ pp_statement s
     | AilScase_rangeGNU (n1, n2, s) ->
