@@ -2919,6 +2919,11 @@ end
                 (ref_ty, tag_sym)
             | (*BISECT-IGNORE*) _ -> illTypedAil loc "AilEmemberofptr"
           end in
+          (* Check if this is a FAM (rvalue) or regular member (lvalue) *)
+          let is_fam = match GenTypes.genTypeCategoryOf a_expr with
+            | GenTypes.GenRValueType _ -> true
+            | GenTypes.GenLValueType _ _ _ -> false
+          end in
           E.wrapped_fresh_symbol (C.BTy_loaded C.OTy_pointer) >>= fun e_wrp    ->
           E.wrapped_fresh_symbol (C.BTy_object C.OTy_pointer) >>= fun obj_wrp  ->
           E.wrapped_fresh_symbol C.BTy_boolean                >>= fun test_wrp ->
@@ -2939,7 +2944,7 @@ end
                           begin
                             Caux.mk_wseq_e res_wrp.E.sym_pat
                               (Caux.mk_memop_e (Mem_common.PtrMemberShift tag_sym ident) [obj_wrp.E.sym_pe])
-                              (Caux.mk_pure_e res_wrp.E.sym_pe)
+                              (Caux.mk_pure_e (if is_fam then Caux.mk_specified_pe res_wrp.E.sym_pe else res_wrp.E.sym_pe))
                           end
                           (* TODO: make a new UB for this particular case *)
                           (Caux.mk_pure_e (Caux.mk_std_undef_pe loc "§6.5.3.3#4, sentence 4" Undefined.UB043_indirection_invalid_value))
@@ -2947,15 +2952,17 @@ end
                       else
                           begin
                             Caux.mk_pure_e begin
+                              let member_ptr = Caux.mk_member_shift_pe obj_wrp.E.sym_pe tag_sym ident in
                               Caux.mk_if_pe test_wrp.E.sym_pe
-                                (Caux.mk_member_shift_pe obj_wrp.E.sym_pe tag_sym ident)
+                                (if is_fam then Caux.mk_specified_pe member_ptr else member_ptr)
                                 (Caux.mk_std_undef_pe loc "§6.5.2.3#4, sentence 4" Undefined.UB043_indirection_invalid_value)
                             end
                           end
                       end
                       else
                         (* NON-ISO: allowing member_shift on "invalid pointer values" *)
-                        Caux.mk_pure_e (Caux.mk_member_shift_pe obj_wrp.E.sym_pe tag_sym ident) ) ]
+                        let member_ptr = Caux.mk_member_shift_pe obj_wrp.E.sym_pe tag_sym ident in
+                        Caux.mk_pure_e (if is_fam then Caux.mk_specified_pe member_ptr else member_ptr) ) ]
               end
             end
           end
