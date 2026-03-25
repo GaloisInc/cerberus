@@ -350,8 +350,26 @@ let mk_op_ival_ iop ival_1 ival_2 =
 
 let mk_offsetof_ival_ acc tag_sym memb_ident =
   match Ctype_aux.get_membersDefs tag_sym with
-    | StructDef _ (Just _) ->
-        error "TODO: Defacto_memory.mk_offsetof_ival_ ==> for struct with flexible array member"
+    | StructDef xs (Just (FlexibleArrayMember _ fam_ident _ _)) ->
+        (* Struct with flexible array member *)
+        if memb_ident = fam_ident then
+          (* Offset to FAM is after all regular members *)
+          List.foldl (fun acc' (ident, (_, _(* TODO: alignment*), _, ty)) ->
+            mk_op_ival_ IntAdd (IVsizeof ty)
+              (mk_op_ival_ IntAdd (IVpadding tag_sym ident) acc')
+          ) acc (List.reverse xs)
+        else
+          (* Offset to regular member - same logic as struct without FAM *)
+          let prefix_xs =
+            List.takeWhile (fun (ident, _) -> memb_ident <> ident) xs in
+          List.foldl (fun acc' (ident, (_, _(* TODO: alignment*), _, ty)) ->
+            if ident = memb_ident then
+              (* TODO: this should be dead code since we fold on the prefix *)
+              acc'
+            else
+              mk_op_ival_ IntAdd (IVsizeof ty)
+                (mk_op_ival_ IntAdd (IVpadding tag_sym ident) acc')
+          ) acc (List.reverse prefix_xs)
     | StructDef xs Nothing ->
         (* we take the prefix the members before the one we want to offset to *)
         let prefix_xs =
@@ -426,7 +444,8 @@ let rec mkUnspec (Ctype _ ty) =
     | Atomic _ ->
         error ("TODO: Defacto_memory.mkUnspec ==> " ^ stringFromCtype (Ctype [] ty))
     | Struct tag_sym ->
-        (* TODO(check) ignoring potential flexible array member, because we are dealing with a struct as value *)
+        (* Ignoring potential flexible array member: FAMs have no value representation
+           in the struct value itself. They are accessed via pointer arithmetic. *)
         let (xs, _) = Ctype_aux.get_structDef tag_sym in
         MVstruct tag_sym (
           List.map (fun (ident, (_, _, _, ty)) -> (ident, ty, mkUnspec ty)) xs
@@ -1300,13 +1319,20 @@ let rec isBeginningShift sh =
     | (SPE_member tag_sym memb_ident) :: sh' ->
         let xs = match Ctype_aux.get_membersDefs tag_sym with
           | StructDef z Nothing -> z
-          | StructDef _ (Just _) ->
-              error "TODO: Defacto_memory.isBeginningShift ==> for struct with flexible array member"
+          | StructDef z (Just (FlexibleArrayMember _ fam_ident _ _)) ->
+              (* For FAM structs, check if accessing the FAM itself or a regular member *)
+              if memb_ident = fam_ident then
+                (* Accessing FAM - it's never at the beginning (always last) *)
+                []
+              else
+                (* Accessing regular member - use regular member list *)
+                z
           | UnionDef  z -> z
         end in
         match xs with
           | [] ->
-              error "Mem.isBeginningShift, get_membersDefs returning an empty list"
+              (* Empty list means either accessing FAM or truly empty struct *)
+              return false
           | (memb_ident', _) :: _ ->
               return (memb_ident = memb_ident')
         end
