@@ -1185,8 +1185,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                                          , GenLValueType (combine_qualifiers qs memb_qs) memb_ty false )
                             | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                                 if memb_ident = flex_ident then
+                                  (* FAMs have pointer type, not array type - no decay needed *)
                                   E.return ( AilEmemberof a_e memb_ident
-                                           , GenLValueType (combine_qualifiers qs flex_qs) (Ctype [] (Array flex_elem_ty Nothing)) false )
+                                           , GenLValueType (combine_qualifiers qs flex_qs) (Ctype [] (Pointer no_qualifiers flex_elem_ty)) false )
                                 else
                                   do_fail
                             | (Nothing, Nothing) ->
@@ -1227,8 +1228,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                             E.return (AilEmemberof a_e memb_ident, GenRValueType (GenTypes.inject_type memb_ty))
                         | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                             if memb_ident = flex_ident then
+                              (* FAMs have pointer type, not array type - no decay needed *)
                               E.return ( AilEmemberof a_e memb_ident
-                                       , GenRValueType (GenTypes.inject_type (Ctype [] (Array flex_elem_ty Nothing))) )
+                                       , GenRValueType (GenTypes.inject_type (Ctype [] (Pointer no_qualifiers flex_elem_ty))) )
                             else
                               do_fail
                         | (Nothing, Nothing) ->
@@ -1300,8 +1302,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                                          , GenLValueType (combine_qualifiers ref_qs memb_qs) memb_ty false )
                             | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                                 if memb_ident = flex_ident then
+                                  (* FAMs have pointer type, not array type - no decay needed *)
                                   E.return ( AilEmemberofptr e' memb_ident
-                                           , GenLValueType (combine_qualifiers ref_qs flex_qs) (Ctype [] (Array flex_elem_ty Nothing)) false )
+                                           , GenLValueType (combine_qualifiers ref_qs flex_qs) (Ctype [] (Pointer no_qualifiers flex_elem_ty)) false )
                                 else
                                   do_fail
                             | (Nothing, Nothing) ->
