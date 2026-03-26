@@ -1185,9 +1185,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                                          , GenLValueType (combine_qualifiers qs memb_qs) memb_ty false )
                             | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                                 if memb_ident = flex_ident then
-                                  (* FAMs yield pointer rvalues - they're computed, not stored *)
+                                  (* FAMs are unbounded arrays, not pointers - let decay handle conversion *)
                                   E.return ( AilEmemberof a_e memb_ident
-                                           , GenRValueType (GenTypes.inject_type (Ctype [] (Pointer no_qualifiers flex_elem_ty))) )
+                                           , GenRValueType (GenTypes.inject_type (Ctype [] (Array flex_elem_ty Nothing))) )
                                 else
                                   do_fail
                             | (Nothing, Nothing) ->
@@ -1228,9 +1228,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                             E.return (AilEmemberof a_e memb_ident, GenRValueType (GenTypes.inject_type memb_ty))
                         | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                             if memb_ident = flex_ident then
-                              (* FAMs have pointer type, not array type - no decay needed *)
+                              (* FAMs are unbounded arrays, not pointers - let decay handle conversion *)
                               E.return ( AilEmemberof a_e memb_ident
-                                       , GenRValueType (GenTypes.inject_type (Ctype [] (Pointer no_qualifiers flex_elem_ty))) )
+                                       , GenRValueType (GenTypes.inject_type (Ctype [] (Array flex_elem_ty Nothing))) )
                             else
                               do_fail
                         | (Nothing, Nothing) ->
@@ -1302,9 +1302,9 @@ let rec annotate_expression annotate_block sigm gamm ctx (AnnotatedExpression ()
                                          , GenLValueType (combine_qualifiers ref_qs memb_qs) memb_ty false )
                             | (Nothing, Just (FlexibleArrayMember attrs flex_ident flex_qs flex_elem_ty)) ->
                                 if memb_ident = flex_ident then
-                                  (* FAMs yield pointer rvalues - they're computed, not stored *)
+                                  (* FAMs are unbounded arrays, not pointers - let decay handle conversion *)
                                   E.return ( AilEmemberofptr e' memb_ident
-                                           , GenRValueType (GenTypes.inject_type (Ctype [] (Pointer no_qualifiers flex_elem_ty))) )
+                                           , GenRValueType (GenTypes.inject_type (Ctype [] (Array flex_elem_ty Nothing))) )
                                 else
                                   do_fail
                             | (Nothing, Nothing) ->
