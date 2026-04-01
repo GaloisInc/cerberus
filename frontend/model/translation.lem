@@ -2876,11 +2876,20 @@ end
             | (*BISECT-IGNORE*) _ ->
                 illTypedAil loc "AilEmemberof"
           end in
-          let bTy = if is_lvalue then C.BTy_object C.OTy_pointer else C.BTy_loaded oTy in
+          (* Check if accessing a FAM field *)
+          let is_fam = match Map.lookup tag_sym tagDefs with
+            | Just (_, Cty.StructDef xs (Just (Cty.FlexibleArrayMember attrs fam_ident qs elem_ty))) ->
+                Symbol.idEqual ident fam_ident
+            | _ -> false
+          end in
+          (* FAM fields are always accessed as pointers *)
+          let bTy = if is_lvalue || is_fam then C.BTy_object C.OTy_pointer else C.BTy_loaded oTy in
           E.wrapped_fresh_symbol bTy >>= fun e_wrp  ->
-          self e                     >>= fun core_e ->
-          
-          if not is_lvalue then
+          (* For FAM rvalue access, we need the struct's address, not its value *)
+          (if is_fam && not is_lvalue then translate_expression false ctx variadic_env stdlib tagDefs e
+           else self e) >>= fun core_e ->
+
+          if not is_lvalue && not is_fam then
              E.wrapped_fresh_symbol (C.BTy_object oTy) >>= fun obj_wrp ->
              E.return begin
                Caux.mk_sseq_e e_wrp.E.sym_pat core_e begin
